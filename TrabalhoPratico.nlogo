@@ -2,12 +2,9 @@
 
 
 
-
-
-
 to Setup
-
-
+  clear-all
+  SetupPatches
 
 end
 
@@ -15,6 +12,44 @@ end
 to Go
 
 
+end
+
+
+to SetupPatches
+  SetupBrownPatches
+  SetupRedPatches
+  SetupBluePatches nCelulasAzuis
+end
+
+to SetupBrownPatches
+  ask patches [
+    let x random 101
+
+    if x < AlimentoPeqPorte [
+      set pcolor brown
+    ]
+  ]
+end
+
+to SetupRedPatches
+  ask patches [
+    let x random 101
+
+    if x < AlimentoGrandePorte [
+      set pcolor red
+    ]
+  ]
+end
+
+to SetupBluePatches [numPatches]
+  repeat numPatches [
+    let x random-xcor
+    let y random-ycor
+
+    ask patch x y [
+      set pcolor blue
+    ]
+  ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -45,15 +80,15 @@ ticks
 30.0
 
 SLIDER
-21
-373
-193
-406
+7
+123
+179
+156
 nCelulasAzuis
 nCelulasAzuis
 0
 5
-2.0
+3.0
 1
 1
 NIL
@@ -92,6 +127,36 @@ NIL
 NIL
 NIL
 1
+
+SLIDER
+7
+50
+179
+83
+AlimentoPeqPorte
+AlimentoPeqPorte
+0
+20
+5.0
+1
+1
+%
+HORIZONTAL
+
+SLIDER
+7
+86
+179
+119
+AlimentoGrandePorte
+AlimentoGrandePorte
+0
+10
+8.0
+1
+1
+%
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
