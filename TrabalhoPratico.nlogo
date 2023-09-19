@@ -1,24 +1,28 @@
-
-
+breed [leoes leao]
+breed [hienas hiena]
 
 
 to Setup
   clear-all
   SetupPatches
+  SetupAgentes
 
+  reset-ticks
 end
 
 
 to Go
 
-
+  tick
 end
 
+
+;;;; PATCHES
 
 to SetupPatches
   SetupBrownPatches
   SetupRedPatches
-  SetupBluePatches nCelulasAzuis
+  SetupBluePatches
 end
 
 to SetupBrownPatches
@@ -41,8 +45,8 @@ to SetupRedPatches
   ]
 end
 
-to SetupBluePatches [numPatches]
-  repeat numPatches [
+to SetupBluePatches
+  repeat nCelulasAzuis [
     let x random-xcor
     let y random-ycor
 
@@ -50,6 +54,53 @@ to SetupBluePatches [numPatches]
       set pcolor blue
     ]
   ]
+end
+
+
+;;;; AGENTES
+
+to SetupAgentes
+  createLeoes
+  createHienas
+
+  ask turtles [
+    let x random-xcor
+    let y random-ycor
+    let headingDirection (random 360)
+
+    set size 1.5
+    setxy x y
+    set heading headingDirection
+  ]
+end
+
+
+;;;;;;;; LEOES
+
+to SetupLeoes
+  ask leoes [
+    set shape "person"
+    set color yellow
+  ]
+end
+
+to CreateLeoes
+  create-leoes nLeoes
+  SetupLeoes
+end
+
+;;;;;;;; HIENAS
+
+to SetupHienas
+  ask hienas [
+    set shape "cow"
+    set color pink
+  ]
+end
+
+to CreateHienas
+  create-hienas nHienas
+  SetupHienas
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -88,7 +139,7 @@ nCelulasAzuis
 nCelulasAzuis
 0
 5
-3.0
+5.0
 1
 1
 NIL
@@ -137,7 +188,7 @@ AlimentoPeqPorte
 AlimentoPeqPorte
 0
 20
-5.0
+10.0
 1
 1
 %
@@ -152,10 +203,40 @@ AlimentoGrandePorte
 AlimentoGrandePorte
 0
 10
-8.0
+10.0
 1
 1
 %
+HORIZONTAL
+
+SLIDER
+7
+160
+179
+193
+nLeoes
+nLeoes
+0
+100
+9.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+7
+197
+179
+230
+nHienas
+nHienas
+0
+100
+24.0
+1
+1
+NIL
 HORIZONTAL
 
 @#$#@#$#@
@@ -181,8 +262,14 @@ HORIZONTAL
 	Células azuis -> (0 a 5 células)
 
 ### Comportamento das Patches
+	
 	Célula vermelha comida -> transforma-se em cèlula castanha
 	Célula castanha comida -> tranforma-se em célula preta, devem reaparecer
+
+### Agentes
+
+	Leao
+	Hiena
 
 ## THINGS TO TRY
 
