@@ -1,6 +1,8 @@
 breed [leoes leao]
 breed [hienas hiena]
 
+turtles-own [energia]
+
 
 to Setup
   clear-all
@@ -12,7 +14,10 @@ end
 
 
 to Go
-
+  ask turtles with [ energia <= 0 ] [ die ]
+  if count turtles = 0 [ stop ]
+  mover
+  comer
   tick
 end
 
@@ -81,6 +86,7 @@ to SetupLeoes
   ask leoes [
     set shape "person"
     set color yellow
+    set energia energiaLeao
   ]
 end
 
@@ -95,6 +101,7 @@ to SetupHienas
   ask hienas [
     set shape "cow"
     set color pink
+    set energia energiaHiena
   ]
 end
 
@@ -102,6 +109,87 @@ to CreateHienas
   create-hienas nHienas
   SetupHienas
 end
+
+
+;;;; AÇÕES
+
+to comer
+  ask turtles [
+    let isCurrentPatchBrown [pcolor] of patch-here = brown
+    let isCurrentPatchRed [pcolor] of patch-here = red
+
+    ifelse isCurrentPatchBrown [
+      set pcolor black
+      set energia (energia + energiaObtida)
+
+      ask one-of patches with [pcolor = black] [
+        set pcolor brown
+      ]
+    ] [
+      if isCurrentPatchRed [
+        set pcolor brown
+        set energia (energia + energiaObtida)
+      ]
+    ]
+  ]
+
+end
+
+to mover
+  ask turtles [
+    let frontPatch patch-ahead 1
+    let leftPatch patch-left-and-ahead 90 1
+    let rightPatch patch-right-and-ahead 90 1
+    let foodOnfrontPatch [pcolor] of frontPatch = red or [pcolor] of frontPatch = brown
+    let foodOnLeftPatch [pcolor] of leftPatch = red or [pcolor] of leftPatch = brown
+    let foodOnRightPatch [pcolor] of rightPatch = red or [pcolor] of rightPatch = brown
+    set energia energia - 1
+
+    ifelse foodOnFrontPatch [
+      fd 1
+    ] [
+      ifelse foodOnLeftPatch [
+        left 90
+      ] [
+        ifelse foodOnRightPatch [
+          right 90
+        ] [
+          let x random 101
+
+          ifelse x < 33 [
+            left 90
+          ] [
+            ifelse x < 66 [
+              right 90
+            ] [
+              fd 1
+            ]
+          ]
+        ]
+      ]
+    ]
+  ]
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
@@ -188,7 +276,7 @@ AlimentoPeqPorte
 AlimentoPeqPorte
 0
 20
-10.0
+17.0
 1
 1
 %
@@ -203,7 +291,7 @@ AlimentoGrandePorte
 AlimentoGrandePorte
 0
 10
-10.0
+4.0
 1
 1
 %
@@ -218,7 +306,7 @@ nLeoes
 nLeoes
 0
 100
-9.0
+52.0
 1
 1
 NIL
@@ -233,7 +321,67 @@ nHienas
 nHienas
 0
 100
-24.0
+67.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+7
+234
+179
+267
+energiaLeao
+energiaLeao
+0
+50
+22.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+7
+271
+179
+304
+energiaHiena
+energiaHiena
+0
+50
+28.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+8
+309
+180
+342
+energiaObtida
+energiaObtida
+1
+50
+32.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+8
+347
+180
+380
+FomeLeao
+FomeLeao
+0
+20
+10.0
 1
 1
 NIL
@@ -260,7 +408,9 @@ HORIZONTAL
 	Células castanhas -> "Alimento de pequeno porte" (0% a 20% do ambiente)
 	Células pretas -> "Vazio"
 	Células azuis -> (0 a 5 células)
-
+	
+	dao energia entre 1 e 50
+	
 ### Comportamento das Patches
 	
 	Célula vermelha comida -> transforma-se em cèlula castanha
@@ -268,8 +418,46 @@ HORIZONTAL
 
 ### Agentes
 
-	Leao
-	Hiena
+	Leoes (caracteristicas)
+		quantidade -> definido pelo utilizador
+		energia -> definido pelo utilizador 
+
+	Leoes (açoes, 1 por tick)
+		comer
+		andar para a frente -> -1 energia
+		rodar 90 -> -1 energia 
+		combater hienas
+		afastar-se 
+			se 2+ hienas APENAS a esquerda
+			-> salta para a direita
+			-> -2 energia
+			
+			se 2+ hienas APENAS a direita
+			-> salta para a esquerda
+			-> -2 energia
+
+			se 2+ hienas APENAS a frente ou
+			se 1+ hienas a esquerda e direita
+			-> salta para tras
+			-> -3 energia
+
+			se 1+ hienas a esquerda e a frente
+			-> salta 1 pa tras e um pa direita
+			-> -5 energia
+			
+			se 1+ hienas a direita e a frente
+			-> salta 1 pa tras e um pa esquerda
+			-> -5 energia
+
+			se 1+ hienas a esquerda e a frente e a direita
+			-> salta 2 pa tras
+			-> - energia
+		
+## Perguntas
+	
+	perdendo cinco (4)
+	
+	Dado que o principal objetivo dos agentes é o de garantir a sua sobrevivência o maior tempo possível, todos os agentes deverão ter associado um valor de nível de energia
 
 ## THINGS TO TRY
 
