@@ -3,6 +3,8 @@ breed [hienas hiena]
 
 turtles-own [energia]
 
+hienas-own [nivelAgrupamento]
+
 
 to Setup
   clear-all
@@ -16,7 +18,7 @@ end
 to Go
   ask turtles with [ energia <= 0 ] [ die ]
   if count turtles = 0 [ stop ]
-  mover
+  moverLeao
   comer
   tick
 end
@@ -135,34 +137,90 @@ to comer
 
 end
 
-to mover
-  ask turtles [
+to moverLeao
+  ask leoes [
     let frontPatch patch-ahead 1
     let leftPatch patch-left-and-ahead 90 1
     let rightPatch patch-right-and-ahead 90 1
     let foodOnfrontPatch [pcolor] of frontPatch = red or [pcolor] of frontPatch = brown
     let foodOnLeftPatch [pcolor] of leftPatch = red or [pcolor] of leftPatch = brown
     let foodOnRightPatch [pcolor] of rightPatch = red or [pcolor] of rightPatch = brown
-    set energia energia - 1
+    let nHienasLeftPatch count hienas-on leftPatch
+    let nHienasRightPatch count hienas-on rightPatch
+    let nHienasFrontPatch count hienas-on frontPatch
 
-    ifelse foodOnFrontPatch [
-      fd 1
-    ] [
-      ifelse foodOnLeftPatch [
-        left 90
+    ifelse energia < fomeLeao [
+      set energia energia - 1
+      ifelse foodOnFrontPatch [
+        fd 1
       ] [
-        ifelse foodOnRightPatch [
-          right 90
+        ifelse foodOnLeftPatch [
+          left 90
         ] [
-          let x random 101
-
-          ifelse x < 33 [
-            left 90
+          ifelse foodOnRightPatch [
+            right 90
           ] [
-            ifelse x < 66 [
-              right 90
+            let x random 101
+
+            ifelse x < 33 [
+              left 90
             ] [
-              fd 1
+              ifelse x < 66 [
+                right 90
+              ] [
+                fd 1
+              ]
+            ]
+          ]
+        ]
+      ]
+    ] [             ;energia > fomeLeao (movimento especial)
+      ifelse nHienasLeftPatch >= 1 and nHienasRightPatch >= 1
+      and nHienasFrontPatch >= 1 [
+        set energia energia - 5
+        back 2
+      ] [
+        ifelse nHienasRightPatch >= 1 and nHienasFrontPatch >= 1 [
+          set energia energia - 5
+          back 1
+          left 90
+          fd 1
+        ] [
+          ifelse nHienasLeftPatch >= 1 and nHienasFrontPatch >= 1 [
+            set energia energia - 5
+            back 1
+            right 90
+            fd 1
+          ] [
+            ifelse nHienasRightPatch >= 2 or (nHienasLeftPatch >= 1
+            and nHienasRightPatch >= 1) [
+              set energia energia - 3
+              back 1
+            ] [
+              ifelse nHienasRightPatch >= 2 [
+                set energia energia - 2
+                left 90
+                fd 1
+              ] [
+                ifelse nHienasLeftPatch >= 2 [
+                  set energia energia - 2
+                  right 90
+                  fd 1
+                ] [
+                  set energia energia - 1
+                  let x random 101
+
+                  ifelse x < 33 [
+                    left 90
+                  ] [
+                    ifelse x < 66 [
+                      right 90
+                    ] [
+                      fd 1
+                    ]
+                  ]
+                ]
+              ]
             ]
           ]
         ]
@@ -170,7 +228,6 @@ to mover
     ]
   ]
 end
-
 
 
 
@@ -336,7 +393,7 @@ energiaLeao
 energiaLeao
 0
 50
-22.0
+21.0
 1
 1
 NIL
@@ -366,7 +423,7 @@ energiaObtida
 energiaObtida
 1
 50
-32.0
+7.0
 1
 1
 NIL
@@ -381,7 +438,7 @@ FomeLeao
 FomeLeao
 0
 20
-10.0
+8.0
 1
 1
 NIL
