@@ -24,6 +24,7 @@ to Go
     stop
   ]
   acaoLeao
+  acaoHiena
   tick
 end
 
@@ -154,6 +155,68 @@ to comer
     ]
   ]
 
+end
+
+to acaoHiena
+  ask hienas [
+    let hienasOnLeft count hienas-on patch-left-and-ahead 90 1
+    let hienasOnRight count hienas-on patch-right-and-ahead 90 1
+    let hienasInFront count hienas-on patch-ahead 1
+    set nivelAgrupamento hienasOnLeft + hienasOnRight + hienasInFront
+    let nleoesOnLeft count leoes-on patch-left-and-ahead 90 1
+    let nleoesOnRight count leoes-on patch-right-and-ahead 90 1
+    let nleoesInFront count leoes-on patch-ahead 1
+    let nleoesInVizinhancaP nleoesOnLeft + nleoesOnRight + nleoesInFront
+
+    ifelse nivelAgrupamento > 0 [ ;cor default pink
+      set color blue ;mudada
+    ][
+      set color pink ;default
+    ]
+    set energia energia - 1
+    ifelse pcolor = brown or pcolor = red[
+      ;TODO comer
+    ][
+      if nivelAgrupamento > 1 and nleoesInVizinhancaP > 0 [
+        let leoesOnLeft leoes with [patch-here = patch-left-and-ahead 90 1]
+        let leoesOnRight leoes with [patch-here = patch-right-and-ahead 90 1]
+        let leoesInFront leoes with [patch-here = patch-ahead 1]
+        ifelse  nleoesOnLeft > 0 [
+          let patchLeft patch-left-and-ahead 90 1
+          let targetLeao one-of leoes-on patchLeft
+          ask targetLeao [die]
+          ;TODO aqui e antes de todos os ask leao die falta a cena da energia
+          ask patchLeft [ set pcolor red]
+        ][ifelse nleoesOnRight > 0 [
+            let patchRight patch-right-and-ahead 90 1
+            let targetLeao one-of leoes-on patchRight
+            ask targetLeao [die]
+            ask patchRight [set pcolor red]
+
+          ][
+            let patchFront patch-ahead 1
+            let targetLeao one-of leoes-on patchFront
+            ask targetLeao [die]
+            ask patchFront [set pcolor red]
+          ]
+        ]
+
+
+      ]
+    ]
+
+
+    ;acao mais prioritaria: alimentacao
+    ;tem de comer quando estiver no patch e apenas no patch
+    ;matar leao quando nivelAgrupamento > 1 se houver um leao na vizinhanca percecionada leao -> aGrandePorte
+    ;perdendo uma percentagem do valor da energia que o leão tinha (percentagem configurada pelo utilizador)
+    ;dividida pelo nível de agrupamento;
+    ;nao ver celulas azuis
+    ;fazer as hienas da vizinhanca andar e deixa las com o mm heading que a que fizer
+
+
+
+  ]
 end
 
 
@@ -338,13 +401,6 @@ to andarNormal
     ]
   ]
 end
-
-to moverHienas
-
-end
-
-
-
 
 
 
@@ -568,6 +624,36 @@ EnergiaPerdidaCombate
 1
 %
 HORIZONTAL
+
+PLOT
+143
+503
+343
+653
+plot 1
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -4757638 true "" "plot count hienas"
+"pen-1" 1.0 0 -4079321 true "" "plot count leoes"
+
+MONITOR
+97
+525
+180
+570
+NIL
+count hienas
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
