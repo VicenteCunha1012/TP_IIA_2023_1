@@ -424,7 +424,6 @@ end
 
 
 
-
 @#$#@#$#@
 GRAPHICS-WINDOW
 211
@@ -454,10 +453,10 @@ ticks
 30.0
 
 SLIDER
-7
-123
-179
-156
+5
+82
+139
+115
 nCelulasAzuis
 nCelulasAzuis
 0
@@ -469,10 +468,10 @@ NIL
 HORIZONTAL
 
 BUTTON
-8
-10
-71
-43
+16
+432
+79
+465
 NIL
 Setup
 NIL
@@ -486,10 +485,10 @@ NIL
 1
 
 BUTTON
-80
-10
-143
-43
+88
+432
+151
+465
 NIL
 Go
 T
@@ -503,90 +502,105 @@ NIL
 1
 
 SLIDER
-7
-50
-179
-83
+5
+10
+139
+43
 AlimentoPeqPorte
 AlimentoPeqPorte
 0
 20
-17.0
+10.0
 1
 1
 %
 HORIZONTAL
 
 SLIDER
-7
-86
-179
-119
+5
+46
+140
+79
 AlimentoGrandePorte
 AlimentoGrandePorte
 0
 10
-4.0
+5.0
 1
 1
 %
 HORIZONTAL
 
 SLIDER
-7
-195
-179
+5
+154
+177
+187
+nLeoes
+nLeoes
+0
+100
+50.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+5
+191
+177
+224
+nHienas
+nHienas
+0
+100
+50.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+5
 228
-nLeoes
-nLeoes
+177
+261
+energiaLeao
+energiaLeao
 0
-100
-52.0
+50
+25.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-7
-232
-179
+5
 265
-nHienas
-nHienas
+177
+298
+energiaHiena
+energiaHiena
 0
-100
-85.0
+50
+25.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-7
-269
-179
-302
-energiaLeao
-energiaLeao
-0
-50
-44.0
+4
+118
+176
+151
+energiaObtida
+energiaObtida
 1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-7
-306
-179
-339
-energiaHiena
-energiaHiena
-0
 50
-28.0
+26.0
 1
 1
 NIL
@@ -594,14 +608,14 @@ HORIZONTAL
 
 SLIDER
 6
-159
+304
 178
-192
-energiaObtida
-energiaObtida
-1
-50
-43.0
+337
+FomeLeao
+FomeLeao
+0
+20
+10.0
 1
 1
 NIL
@@ -609,24 +623,9 @@ HORIZONTAL
 
 SLIDER
 8
-345
-180
-378
-FomeLeao
-FomeLeao
-0
-20
-20.0
-1
-1
-NIL
-HORIZONTAL
-
-SLIDER
-7
-384
-191
-417
+342
+192
+375
 EnergiaPerdidaCombate
 EnergiaPerdidaCombate
 0
@@ -638,13 +637,13 @@ EnergiaPerdidaCombate
 HORIZONTAL
 
 PLOT
-143
-503
-343
-653
-plot 1
-NIL
-NIL
+212
+458
+412
+608
+Leoes
+Tempo
+N Leoes
 0.0
 10.0
 0.0
@@ -653,34 +652,62 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -4757638 true "" "plot count hienas"
-"pen-1" 1.0 0 -4079321 true "" "plot count leoes"
+"pen-1" 1.0 0 -987046 true "" "plot count leoes"
 
 MONITOR
-97
-525
-180
-570
-NIL
+17
+473
+72
+518
+N Hienas
 count hienas
 17
 1
 11
 
 SLIDER
-12
-441
-184
-474
+11
+389
+183
+422
 descansoLeao
 descansoLeao
 0
-1000
-197.0
+30
+15.0
 1
 1
 NIL
 HORIZONTAL
+
+PLOT
+440
+456
+640
+606
+Hienas
+Tempo
+N Hienas
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -2064490 true "" "plot count hienas"
+
+MONITOR
+36
+544
+93
+589
+N Leoes
+count leoes
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
