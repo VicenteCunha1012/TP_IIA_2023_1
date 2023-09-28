@@ -4,6 +4,7 @@ breed [hienas hiena]
 turtles-own [energia]
 
 hienas-own [nivelAgrupamento]
+leoes-own [timerDescanso]
 
 
 to Setup
@@ -231,6 +232,8 @@ to acaoLeao
     let foodOnLeftPatch [pcolor] of leftPatch = red or [pcolor] of leftPatch = brown
     let foodOnRightPatch [pcolor] of rightPatch = red or [pcolor] of rightPatch = brown
     let foodOnCurrentPatch [pcolor] of currentPatch = red or [pcolor] of currentPatch = brown
+
+    let inBluePatch [pcolor] of currentPatch = blue
     let nHienasLeftPatch count hienas-on leftPatch
     let nHienasRightPatch count hienas-on rightPatch
     let nHienasFrontPatch count hienas-on frontPatch
@@ -238,138 +241,148 @@ to acaoLeao
     let killRightPatch nHienasRightPatch = 1 and nHienasLeftPatch = 0 and nHienasFrontPatch = 0
     let killfrontPatch nHienasFrontPatch = 1 and nHienasRightPatch = 0 and nHienasLeftPatch = 0
 
-    ifelse energia < fomeLeao
+    ifelse inBluePatch
     [
-      ifelse foodOnCurrentPatch
+      if (ticks - timerDescanso) > descansoLeao
       [
-        comer
+        fd 1
       ]
-      [;else
-        set energia energia - 1
-        ifelse foodOnFrontPatch
+    ]
+    [
+      set timerDescanso ticks     ;atualiza sempre
+      ifelse energia < fomeLeao
+      [
+        ifelse foodOnCurrentPatch
         [
-          fd 1
+          comer
         ]
         [;else
-          ifelse foodOnLeftPatch
+          set energia energia - 1
+          ifelse foodOnFrontPatch
           [
-            left 90
+            fd 1
           ]
           [;else
-            ifelse foodOnRightPatch
+            ifelse foodOnLeftPatch
             [
-              right 90
+              left 90
             ]
             [;else
-              ifelse killLeftPatch
+              ifelse foodOnRightPatch
               [
-                let targetHiena one-of hienas-on leftPatch
-                set energia (energia - ([energia] of targetHiena) / energiaPerdidaCombate)
-                set pcolor brown
-                ask targetHiena [die]
+                right 90
               ]
               [;else
-                ifelse killRightPatch
+                ifelse killLeftPatch
                 [
-                  let targetHiena one-of hienas-on rightPatch
+                  let targetHiena one-of hienas-on leftPatch
                   set energia (energia - ([energia] of targetHiena) / energiaPerdidaCombate)
                   set pcolor brown
                   ask targetHiena [die]
                 ]
                 [;else
-                  ifelse killFrontPatch
+                  ifelse killRightPatch
                   [
-                    let targetHiena one-of hienas-on frontPatch
+                    let targetHiena one-of hienas-on rightPatch
                     set energia (energia - ([energia] of targetHiena) / energiaPerdidaCombate)
                     set pcolor brown
                     ask targetHiena [die]
                   ]
                   [;else
-                      andarNormal
-                  ]
-                ]
-              ]
-            ]
-          ]
-        ]
-      ]
-    ]
-    [;else energia > fomeLeao (movimento especial)
-      ifelse nHienasLeftPatch >= 1 and nHienasRightPatch >= 1
-      and nHienasFrontPatch >= 1
-      [
-        set energia energia - 5
-        back 2
-      ]
-      [;else
-        ifelse nHienasRightPatch >= 1 and nHienasFrontPatch >= 1
-        [
-          set energia energia - 5
-          back 1
-          left 90
-          fd 1
-        ]
-        [;else
-          ifelse nHienasLeftPatch >= 1 and nHienasFrontPatch >= 1
-          [
-            set energia energia - 5
-            back 1
-            right 90
-            fd 1
-          ]
-          [;else
-            ifelse nHienasRightPatch >= 2 or (nHienasLeftPatch >= 1
-            and nHienasRightPatch >= 1)
-            [
-              set energia energia - 3
-              back 1
-            ]
-            [;else
-              ifelse nHienasRightPatch >= 2
-              [
-                set energia energia - 2
-                left 90
-                fd 1
-              ]
-              [;else
-                ifelse nHienasLeftPatch >= 2
-                [
-                  set energia energia - 2
-                  right 90
-                  fd 1
-                ]
-                [;else
-                  ifelse foodOnCurrentPatch
-                  [
-                    comer
-                  ]
-                  [;else
-                    ifelse killLeftPatch
+                    ifelse killFrontPatch
                     [
-                      let targetHiena one-of hienas-on leftPatch
+                      let targetHiena one-of hienas-on frontPatch
                       set energia (energia - ([energia] of targetHiena) / energiaPerdidaCombate)
                       set pcolor brown
                       ask targetHiena [die]
                     ]
                     [;else
-                      ifelse killRightPatch
+                      andarNormal
+                    ]
+                  ]
+                ]
+              ]
+            ]
+          ]
+        ]
+      ]
+      [;else energia > fomeLeao (movimento especial)
+        ifelse nHienasLeftPatch >= 1 and nHienasRightPatch >= 1
+        and nHienasFrontPatch >= 1
+        [
+          set energia energia - 5
+          back 2
+        ]
+        [;else
+          ifelse nHienasRightPatch >= 1 and nHienasFrontPatch >= 1
+          [
+            set energia energia - 5
+            back 1
+            left 90
+            fd 1
+          ]
+          [;else
+            ifelse nHienasLeftPatch >= 1 and nHienasFrontPatch >= 1
+            [
+              set energia energia - 5
+              back 1
+              right 90
+              fd 1
+            ]
+            [;else
+              ifelse nHienasRightPatch >= 2 or (nHienasLeftPatch >= 1
+                and nHienasRightPatch >= 1)
+              [
+                set energia energia - 3
+                back 1
+              ]
+              [;else
+                ifelse nHienasRightPatch >= 2
+                [
+                  set energia energia - 2
+                  left 90
+                  fd 1
+                ]
+                [;else
+                  ifelse nHienasLeftPatch >= 2
+                  [
+                    set energia energia - 2
+                    right 90
+                    fd 1
+                  ]
+                  [;else
+                    ifelse foodOnCurrentPatch
+                    [
+                      comer
+                    ]
+                    [;else
+                      ifelse killLeftPatch
                       [
-                        let targetHiena one-of hienas-on rightPatch
+                        let targetHiena one-of hienas-on leftPatch
                         set energia (energia - ([energia] of targetHiena) / energiaPerdidaCombate)
                         set pcolor brown
                         ask targetHiena [die]
                       ]
                       [;else
-                        ifelse killFrontPatch
+                        ifelse killRightPatch
                         [
-                          let targetHiena one-of hienas-on frontPatch
+                          let targetHiena one-of hienas-on rightPatch
                           set energia (energia - ([energia] of targetHiena) / energiaPerdidaCombate)
                           set pcolor brown
                           ask targetHiena [die]
                         ]
                         [;else
-                          set energia energia - 1
-                          andarNormal
+                          ifelse killFrontPatch
+                          [
+                            let targetHiena one-of hienas-on frontPatch
+                            set energia (energia - ([energia] of targetHiena) / energiaPerdidaCombate)
+                            set pcolor brown
+                            ask targetHiena [die]
+                          ]
+                          [;else
+                            set energia energia - 1
+                            andarNormal
+                          ]
                         ]
                       ]
                     ]
@@ -401,7 +414,6 @@ to andarNormal
     ]
   ]
 end
-
 
 
 
@@ -544,7 +556,7 @@ nHienas
 nHienas
 0
 100
-100.0
+85.0
 1
 1
 NIL
@@ -559,7 +571,7 @@ energiaLeao
 energiaLeao
 0
 50
-17.0
+44.0
 1
 1
 NIL
@@ -589,7 +601,7 @@ energiaObtida
 energiaObtida
 1
 50
-16.0
+43.0
 1
 1
 NIL
@@ -604,7 +616,7 @@ FomeLeao
 FomeLeao
 0
 20
-15.0
+20.0
 1
 1
 NIL
@@ -654,6 +666,21 @@ count hienas
 17
 1
 11
+
+SLIDER
+12
+441
+184
+474
+descansoLeao
+descansoLeao
+0
+1000
+197.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
