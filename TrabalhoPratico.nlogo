@@ -131,78 +131,116 @@ end
 ;;;; AÇÕES
 
 to comer
-  ask leoes
+  let isCurrentPatchBrown [pcolor] of patch-here = brown
+  let isCurrentPatchRed [pcolor] of patch-here = red
+
+  ifelse isCurrentPatchBrown
   [
-    let isCurrentPatchBrown [pcolor] of patch-here = brown
-    let isCurrentPatchRed [pcolor] of patch-here = red
+    set pcolor black
+    set energia (energia + energiaObtida)
 
-    ifelse isCurrentPatchBrown
+    ask one-of patches with [pcolor = black]
     [
-      set pcolor black
-      set energia (energia + energiaObtida)
-
-      ask one-of patches with [pcolor = black]
-      [
-        set pcolor brown
-      ]
-
+      set pcolor brown
     ]
-    [;else
-      if isCurrentPatchRed
-      [
-        set pcolor brown
-        set energia (energia + energiaObtida)
-      ]
+
+  ]
+  [;else
+    if isCurrentPatchRed
+    [
+      set pcolor brown
+      set energia (energia + energiaObtida)
     ]
   ]
-
 end
 
 to acaoHiena
   ask hienas [
-    let hienasOnLeft count hienas-on patch-left-and-ahead 90 1
-    let hienasOnRight count hienas-on patch-right-and-ahead 90 1
-    let hienasInFront count hienas-on patch-ahead 1
-    set nivelAgrupamento hienasOnLeft + hienasOnRight + hienasInFront
-    let nleoesOnLeft count leoes-on patch-left-and-ahead 90 1
-    let nleoesOnRight count leoes-on patch-right-and-ahead 90 1
-    let nleoesInFront count leoes-on patch-ahead 1
-    let nleoesInVizinhancaP nleoesOnLeft + nleoesOnRight + nleoesInFront
+    let frontPatch patch-ahead 1
+    let leftPatch patch-left-and-ahead 90 1
+    let rightPatch patch-right-and-ahead 90 1
+    let currentPatch patch-here
 
-    ifelse nivelAgrupamento > 0 [ ;cor default pink
+    let hienasOnLeft count hienas-on leftPatch
+    let hienasOnRight count hienas-on rightPatch
+    let hienasInFront count hienas-on frontPatch
+    let hienasOnCurrent (count hienas-on currentPatch - 1)
+    set nivelAgrupamento hienasOnLeft + hienasOnRight + hienasInFront + hienasOnCurrent
+    let nleoesOnLeft count leoes-on leftPatch
+    let nleoesOnRight count leoes-on rightPatch
+    let nleoesInFront count leoes-on frontPatch
+    let nleoesInVizinhancaP nleoesOnLeft + nleoesOnRight + nleoesInFront
+    let foodOnCurrentPatch pcolor = brown or pcolor = red
+
+    ifelse nivelAgrupamento > 0 ;cor default pink
+    [
       set color blue ;mudada
-    ][
+    ]
+    [
       set color pink ;default
     ]
-    set energia energia - 1
-    ifelse pcolor = brown or pcolor = red[
-      ;TODO comer
-    ][
-      if nivelAgrupamento > 1 and nleoesInVizinhancaP > 0 [
-        let leoesOnLeft leoes with [patch-here = patch-left-and-ahead 90 1]
-        let leoesOnRight leoes with [patch-here = patch-right-and-ahead 90 1]
-        let leoesInFront leoes with [patch-here = patch-ahead 1]
-        ifelse  nleoesOnLeft > 0 [
-          let patchLeft patch-left-and-ahead 90 1
-          let targetLeao one-of leoes-on patchLeft
-          ask targetLeao [die]
-          ;TODO aqui e antes de todos os ask leao die falta a cena da energia
-          ask patchLeft [ set pcolor red]
-        ][ifelse nleoesOnRight > 0 [
-            let patchRight patch-right-and-ahead 90 1
-            let targetLeao one-of leoes-on patchRight
-            ask targetLeao [die]
-            ask patchRight [set pcolor red]
 
-          ][
-            let patchFront patch-ahead 1
-            let targetLeao one-of leoes-on patchFront
-            ask targetLeao [die]
-            ask patchFront [set pcolor red]
+    ifelse foodOnCurrentPatch
+    [
+      comer
+    ]
+    [
+      ifelse nivelAgrupamento > 1
+      [
+        ifelse nleoesInVizinhancaP = 1
+        [
+          ifelse  nleoesOnLeft = 1
+          [
+            let targetLeao leoes-on leftPatch
+            ; perde energia
+            ask targetLeao
+            [
+              die
+            ]
+            ask leftPatch
+            [
+              set pcolor green
+            ]
+          ]
+          [
+            ifelse nleoesOnRight = 1
+            [
+              let targetLeao leoes-on rightPatch
+              ; perde energia
+              ask targetLeao
+              [
+                die
+              ]
+              ask rightPatch
+              [
+                set pcolor green
+              ]
+            ]
+            [
+              let targetLeao leoes-on frontPatch
+              ; perde energia
+              ask targetLeao
+              [
+                die
+              ]
+              ask frontPatch
+              [
+                set pcolor green
+              ]
+            ]
           ]
         ]
-
-
+        [
+          set energia energia - 1
+          if nleoesInVizinhancaP = 0
+          [
+            ;andar todas juntas
+          ]
+        ]
+      ]
+      [
+        set energia energia - 1
+        andarNormal
       ]
     ]
 
@@ -277,7 +315,7 @@ to acaoLeao
                 [
                   let targetHiena one-of hienas-on leftPatch
                   set energia (energia - ([energia] of targetHiena) / energiaPerdidaCombate)
-                  set pcolor brown
+                  ask leftPatch [set pcolor brown]
                   ask targetHiena [die]
                 ]
                 [;else
@@ -285,7 +323,7 @@ to acaoLeao
                   [
                     let targetHiena one-of hienas-on rightPatch
                     set energia (energia - ([energia] of targetHiena) / energiaPerdidaCombate)
-                    set pcolor brown
+                    ask rightPatch [set pcolor brown]
                     ask targetHiena [die]
                   ]
                   [;else
@@ -293,7 +331,7 @@ to acaoLeao
                     [
                       let targetHiena one-of hienas-on frontPatch
                       set energia (energia - ([energia] of targetHiena) / energiaPerdidaCombate)
-                      set pcolor brown
+                      ask frontPatch [set pcolor brown]
                       ask targetHiena [die]
                     ]
                     [;else
@@ -360,7 +398,7 @@ to acaoLeao
                       [
                         let targetHiena one-of hienas-on leftPatch
                         set energia (energia - ([energia] of targetHiena) / energiaPerdidaCombate)
-                        set pcolor brown
+                        ask leftPatch [set pcolor brown]
                         ask targetHiena [die]
                       ]
                       [;else
@@ -368,7 +406,7 @@ to acaoLeao
                         [
                           let targetHiena one-of hienas-on rightPatch
                           set energia (energia - ([energia] of targetHiena) / energiaPerdidaCombate)
-                          set pcolor brown
+                          ask rightPatch [set pcolor brown]
                           ask targetHiena [die]
                         ]
                         [;else
@@ -376,7 +414,7 @@ to acaoLeao
                           [
                             let targetHiena one-of hienas-on frontPatch
                             set energia (energia - ([energia] of targetHiena) / energiaPerdidaCombate)
-                            set pcolor brown
+                            ask frontPatch [set pcolor brown]
                             ask targetHiena [die]
                           ]
                           [;else
@@ -414,7 +452,6 @@ to andarNormal
     ]
   ]
 end
-
 
 
 
@@ -540,7 +577,7 @@ nLeoes
 nLeoes
 0
 100
-50.0
+67.0
 1
 1
 NIL
@@ -555,7 +592,7 @@ nHienas
 nHienas
 0
 100
-50.0
+100.0
 1
 1
 NIL
@@ -585,7 +622,7 @@ energiaHiena
 energiaHiena
 0
 50
-25.0
+50.0
 1
 1
 NIL
@@ -600,7 +637,7 @@ energiaObtida
 energiaObtida
 1
 50
-26.0
+16.0
 1
 1
 NIL
@@ -674,7 +711,7 @@ descansoLeao
 descansoLeao
 0
 30
-15.0
+14.0
 1
 1
 NIL
