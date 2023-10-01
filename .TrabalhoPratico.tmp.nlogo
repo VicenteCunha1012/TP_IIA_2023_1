@@ -199,8 +199,8 @@ to acaoHiena
           [
             let targetLeao leoes-on leftPatch
 
-
-             let energyToDeduct  ([energia] of targetLeao) * (EnergiaPerdidaCombate / 100)  / nivelAgrupamento
+            let energ EnergiaPerdidaCombate * 1
+             let energyToDeduct ( ([energia] of targetLeao) * (EnergiaPerdidaCombate / 100) ) / nivelAgrupamento
 
               ask indHienasOnLeft [
                 set energia energia - energyToDeduct
@@ -229,8 +229,7 @@ to acaoHiena
           [
             ifelse nleoesOnRight = 1
             [
-              let targetLeao leoes-on rightPatch
-              let energyToDeduct  ([energia] of targetLeao) * (EnergiaPerdidaCombate / 100)  / nivelAgrupamento
+              let energyToDeduct ( ([energia] of targetLeao) * (EnergiaPerdidaCombate / 100) ) / nivelAgrupamento
 
               ask indHienasOnLeft [
                 set energia energia - energyToDeduct
@@ -259,7 +258,7 @@ to acaoHiena
             [
               let targetLeao leoes-on frontPatch
 
-              let energyToDeduct  ([energia] of targetLeao) * (EnergiaPerdidaCombate / 100)  / nivelAgrupamento
+              let energyToDeduct ( ([energia] of targetLeao) * (EnergiaPerdidaCombate / 100) ) / nivelAgrupamento
 
               ask indHienasOnLeft [
                 set energia energia - energyToDeduct
