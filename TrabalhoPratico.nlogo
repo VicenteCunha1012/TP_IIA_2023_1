@@ -169,13 +169,14 @@ to acaoHiena
     let nleoesOnLeft count leoes-on leftPatch
     let nleoesOnRight count leoes-on rightPatch
     let nleoesInFront count leoes-on frontPatch
-    let nleoesInVizinhancaP nleoesOnLeft + nleoesOnRight + nleoesInFront
+    let nleoesInCurrent count leoes-on currentPatch
+    let nleoesInVizinhancaP nleoesOnLeft + nleoesOnRight + nleoesInFront + nleoesInCurrent
     let foodOnCurrentPatch pcolor = brown or pcolor = red
 
     let indHienasOnLeft hienas-on leftPatch
     let indHienasOnRight hienas-on rightPatch
     let indHienasInFront hienas-on frontPatch
-    let indHienasInCurrent (hienas-on currentPatch)
+    let indHienasInCurrent hienas-on currentPatch
 
 
     ifelse nivelAgrupamento > 0 ;cor default pink
@@ -197,8 +198,7 @@ to acaoHiena
         [
           ifelse  nleoesOnLeft = 1
           [
-            let targetLeao leoes-on leftPatch
-
+            let targetLeao one-of leoes-on leftPatch
 
              let energyToDeduct  ([energia] of targetLeao) * (EnergiaPerdidaCombate / 100)  / nivelAgrupamento
 
@@ -214,23 +214,20 @@ to acaoHiena
               ask indHienasInCurrent [
                 set energia energia - energyToDeduct
               ]
-
-
-            ; perde energia
             ask targetLeao
             [
               die
             ]
             ask leftPatch
             [
-              set pcolor green
+              set pcolor red
             ]
           ]
           [
             ifelse nleoesOnRight = 1
             [
-              let targetLeao leoes-on rightPatch
-              let energyToDeduct  ([energia] of targetLeao) * (EnergiaPerdidaCombate / 100)  / nivelAgrupamento
+              let targetLeao one-of leoes-on rightPatch
+              let energyToDeduct  (EnergiaPerdidaCombate / 100)  / nivelAgrupamento
 
               ask indHienasOnLeft [
                 set energia energia - energyToDeduct
@@ -244,43 +241,71 @@ to acaoHiena
               ask indHienasInCurrent [
                 set energia energia - energyToDeduct
               ]
-
-
-              ; perde energia
               ask targetLeao
               [
                 die
               ]
               ask rightPatch
               [
-                set pcolor green
+                set pcolor red
               ]
             ]
             [
-              let targetLeao leoes-on frontPatch
-
-              let energyToDeduct  ([energia] of targetLeao) * (EnergiaPerdidaCombate / 100)  / nivelAgrupamento
-
-              ask indHienasOnLeft [
-                set energia energia - energyToDeduct
-              ]
-              ask indHienasOnRight [
-                set energia energia - energyToDeduct
-              ]
-              ask indHienasInFront [
-                set energia energia - energyToDeduct
-              ]
-              ask indHienasInCurrent [
-                set energia energia - energyToDeduct
-              ]
-              ; perde energia
-              ask targetLeao
+              ifelse nleoesInFront = 1
               [
-                die
+                let targetLeao one-of leoes-on frontPatch
+
+                let energyToDeduct  (EnergiaPerdidaCombate / 100)  / nivelAgrupamento
+
+                ask indHienasOnLeft [
+                  set energia energia - energyToDeduct
+                ]
+                ask indHienasOnRight [
+                  set energia energia - energyToDeduct
+                ]
+                ask indHienasInFront [
+                  set energia energia - energyToDeduct
+                ]
+                ask indHienasInCurrent [
+                  set energia energia - energyToDeduct
+                ]
+                ask targetLeao
+                [
+                  die
+                ]
+                ask frontPatch
+                [
+                  set pcolor red
+                ]
               ]
-              ask frontPatch
               [
-                set pcolor green
+                if nLeoesInCurrent = 1
+                [
+                  let targetLeao one-of leoes-on currentPatch
+                  let energyToDeduct  (EnergiaPerdidaCombate / 100)  / nivelAgrupamento
+
+                  ask indHienasOnLeft [
+                    set energia energia - energyToDeduct
+                  ]
+                  ask indHienasOnRight [
+                    set energia energia - energyToDeduct
+                  ]
+                  ask indHienasInFront [
+                    set energia energia - energyToDeduct
+                  ]
+                  ask indHienasInCurrent [
+                    set energia energia - energyToDeduct
+                  ]
+
+                  ask targetLeao
+                  [
+                    die
+                  ]
+                  ask rightPatch
+                  [
+                    set pcolor red
+                  ]
+                ]
               ]
             ]
           ]
@@ -289,7 +314,31 @@ to acaoHiena
           set energia energia - 1
           if nleoesInVizinhancaP = 0
           [
-            ;andar todas juntas
+            andarNormal
+            let currentHeading heading
+            let x xcor
+            let y ycor
+
+            ask indHienasOnLeft [
+              set heading currentHeading
+              set xcor x
+              set ycor y
+            ]
+            ask indHienasOnRight [
+              set heading currentHeading
+              set xcor x
+              set ycor y
+            ]
+            ask indHienasInFront [
+              set heading currentHeading
+              set xcor x
+              set ycor y
+            ]
+            ask indHienasInCurrent [
+              set heading currentHeading
+              set xcor x
+              set ycor y
+            ]
           ]
         ]
       ]
@@ -298,15 +347,7 @@ to acaoHiena
         andarNormal
       ]
     ]
-
-
-    ;acao mais prioritaria: alimentacao
-    ;tem de comer quando estiver no patch e apenas no patch
-    ;matar leao quando nivelAgrupamento > 1 se houver um leao na vizinhanca percecionada leao -> aGrandePorte
-    ;perdendo uma percentagem do valor da energia que o leão tinha (percentagem configurada pelo utilizador)
-    ;dividida pelo nível de agrupamento;
     ;nao ver celulas azuis
-    ;fazer as hienas da vizinhanca andar e deixa las com o mm heading que a que fizer
 
 
 
@@ -369,7 +410,7 @@ to acaoLeao
                 ifelse killLeftPatch
                 [
                   let targetHiena one-of hienas-on leftPatch
-                  set energia (energia - ([energia] of targetHiena) / energiaPerdidaCombate)
+                  set energia (energia - ([energia] of targetHiena) * energiaPerdidaCombate / 100)
                   ask leftPatch [set pcolor brown]
                   ask targetHiena [die]
                 ]
@@ -377,7 +418,7 @@ to acaoLeao
                   ifelse killRightPatch
                   [
                     let targetHiena one-of hienas-on rightPatch
-                    set energia (energia - ([energia] of targetHiena) / energiaPerdidaCombate)
+                    set energia (energia - ([energia] of targetHiena) * energiaPerdidaCombate / 100)
                     ask rightPatch [set pcolor brown]
                     ask targetHiena [die]
                   ]
@@ -385,7 +426,7 @@ to acaoLeao
                     ifelse killFrontPatch
                     [
                       let targetHiena one-of hienas-on frontPatch
-                      set energia (energia - ([energia] of targetHiena) / energiaPerdidaCombate)
+                      set energia (energia - ([energia] of targetHiena) * energiaPerdidaCombate / 100)
                       ask frontPatch [set pcolor brown]
                       ask targetHiena [die]
                     ]
@@ -507,7 +548,6 @@ to andarNormal
     ]
   ]
 end
-
 
 
 
@@ -661,7 +701,7 @@ energiaLeao
 energiaLeao
 0
 50
-25.0
+50.0
 1
 1
 NIL
@@ -691,7 +731,7 @@ energiaObtida
 energiaObtida
 1
 50
-16.0
+14.0
 1
 1
 NIL
@@ -706,7 +746,7 @@ FomeLeao
 FomeLeao
 0
 20
-10.0
+17.0
 1
 1
 NIL
@@ -721,7 +761,7 @@ EnergiaPerdidaCombate
 EnergiaPerdidaCombate
 0
 20
-10.0
+16.0
 1
 1
 %
@@ -765,7 +805,7 @@ descansoLeao
 descansoLeao
 0
 30
-13.0
+21.0
 1
 1
 NIL
