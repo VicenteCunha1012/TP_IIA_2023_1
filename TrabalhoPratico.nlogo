@@ -24,8 +24,25 @@ to Go
   [
     stop
   ]
-  acaoLeao
-  acaoHiena
+  ifelse hienasMelhoradas?
+  [
+    acaoHienaMelhorado
+  ]
+  [
+    acaoHiena
+  ]
+
+   ifelse leoesMelhorados?
+  [
+    acaoLeaoMelhorado
+  ]
+  [
+    acaoLeao
+  ]
+
+
+
+
   tick
 end
 
@@ -316,28 +333,18 @@ to acaoHiena
           [
             andarNormal
             let currentHeading heading
-            let x xcor
-            let y ycor
 
             ask indHienasOnLeft [
               set heading currentHeading
-              set xcor x
-              set ycor y
             ]
             ask indHienasOnRight [
               set heading currentHeading
-              set xcor x
-              set ycor y
             ]
             ask indHienasInFront [
               set heading currentHeading
-              set xcor x
-              set ycor y
             ]
             ask indHienasInCurrent [
               set heading currentHeading
-              set xcor x
-              set ycor y
             ]
           ]
         ]
@@ -550,6 +557,421 @@ to andarNormal
 end
 
 
+;%%%%%%%%%%%%%%MELHORADO%%%%%%%%%%%%%%%%%%
+
+to acaoLeaoMelhorado
+  ask leoes
+  [
+    let frontPatch patch-ahead 1
+    let leftPatch patch-left-and-ahead 90 1
+    let rightPatch patch-right-and-ahead 90 1
+    let currentPatch patch-here
+    let foodOnfrontPatch [pcolor] of frontPatch = red or [pcolor] of frontPatch = brown
+    let foodOnLeftPatch [pcolor] of leftPatch = red or [pcolor] of leftPatch = brown
+    let foodOnRightPatch [pcolor] of rightPatch = red or [pcolor] of rightPatch = brown
+    let foodOnCurrentPatch [pcolor] of currentPatch = red or [pcolor] of currentPatch = brown
+
+    let inBluePatch [pcolor] of currentPatch = blue
+    let nHienasLeftPatch count hienas-on leftPatch
+    let nHienasRightPatch count hienas-on rightPatch
+    let nHienasFrontPatch count hienas-on frontPatch
+    let nHienasInRadius count hienas in-radius 4
+    let killLeftPatch nHienasLeftPatch = 1 and nHienasRightPatch = 0 and nHienasFrontPatch = 0
+    let killRightPatch nHienasRightPatch = 1 and nHienasLeftPatch = 0 and nHienasFrontPatch = 0
+    let killfrontPatch nHienasFrontPatch = 1 and nHienasRightPatch = 0 and nHienasLeftPatch = 0
+
+
+
+    ifelse inBluePatch
+    [
+      if (ticks - timerDescanso) > descansoLeao
+      [
+        fd 1
+      ]
+    ]
+    [
+      set timerDescanso ticks     ;atualiza sempre
+      ifelse energia < fomeLeao
+      [
+        ifelse foodOnCurrentPatch
+        [
+          comer
+        ]
+        [;else
+          set energia energia - 1
+          ifelse foodOnFrontPatch
+          [
+            fd 1
+          ]
+          [;else
+            ifelse foodOnLeftPatch
+            [
+              left 90
+            ]
+            [;else
+              ifelse foodOnRightPatch
+              [
+                right 90
+              ]
+              [;else
+                ifelse killLeftPatch
+                [
+                  let targetHiena one-of hienas-on leftPatch
+                  set energia (energia - ([energia] of targetHiena) * energiaPerdidaCombate / 100)
+                  ask leftPatch [set pcolor brown]
+                  ask targetHiena [die]
+                ]
+                [;else
+                  ifelse killRightPatch
+                  [
+                    let targetHiena one-of hienas-on rightPatch
+                    set energia (energia - ([energia] of targetHiena) * energiaPerdidaCombate / 100)
+                    ask rightPatch [set pcolor brown]
+                    ask targetHiena [die]
+                  ]
+                  [;else
+                    ifelse killFrontPatch
+                    [
+                      let targetHiena one-of hienas-on frontPatch
+                      set energia (energia - ([energia] of targetHiena) * energiaPerdidaCombate / 100)
+                      ask frontPatch [set pcolor brown]
+                      ask targetHiena [die]
+                    ]
+                    [;else
+                      andarNormal
+                    ]
+                  ]
+                ]
+              ]
+            ]
+          ]
+        ]
+      ]
+      [;else energia > fomeLeao (movimento especial)
+        ifelse nHienasLeftPatch >= 1 and nHienasRightPatch >= 1
+        and nHienasFrontPatch >= 1
+        [
+          set energia energia - 5
+          back 2
+        ]
+        [;else
+          ifelse nHienasRightPatch >= 1 and nHienasFrontPatch >= 1
+          [
+            set energia energia - 5
+            back 1
+            left 90
+            fd 1
+          ]
+          [;else
+            ifelse nHienasLeftPatch >= 1 and nHienasFrontPatch >= 1
+            [
+              set energia energia - 5
+              back 1
+              right 90
+              fd 1
+            ]
+            [;else
+              ifelse nHienasRightPatch >= 2 or (nHienasLeftPatch >= 1
+                and nHienasRightPatch >= 1)
+              [
+                set energia energia - 3
+                back 1
+              ]
+              [;else
+                ifelse nHienasRightPatch >= 2
+                [
+                  set energia energia - 2
+                  left 90
+                  fd 1
+                ]
+                [;else
+                  ifelse nHienasLeftPatch >= 2
+                  [
+                    set energia energia - 2
+                    right 90
+                    fd 1
+                  ]
+                  [;else
+                    ifelse foodOnCurrentPatch
+                    [
+                      comer
+                    ]
+                    [;else
+                      ifelse killLeftPatch
+                      [
+                        let targetHiena one-of hienas-on leftPatch
+                        set energia (energia - ([energia] of targetHiena) / energiaPerdidaCombate)
+                        ask leftPatch [set pcolor brown]
+                        ask targetHiena [die]
+                      ]
+                      [;else
+                        ifelse killRightPatch
+                        [
+                          let targetHiena one-of hienas-on rightPatch
+                          set energia (energia - ([energia] of targetHiena) / energiaPerdidaCombate)
+                          ask rightPatch [set pcolor brown]
+                          ask targetHiena [die]
+                        ]
+                        [;else
+                          ifelse killFrontPatch
+                          [
+                            let targetHiena one-of hienas-on frontPatch
+                            set energia (energia - ([energia] of targetHiena) / energiaPerdidaCombate)
+                            ask frontPatch [set pcolor brown]
+                            ask targetHiena [die]
+                          ]
+                          [;else
+                            ifelse nHienasInRadius > 10
+                            [
+                              let nearestBluePatch min-one-of patches with [pcolor = blue] [4]
+
+                              ifelse nearestBluePatch != nobody
+                              [
+                                let bPatchX [pxcor] of nearestBluePatch
+                                let bPatchY [pycor] of nearestBluePatch
+                                set xcor bPatchX
+                                set ycor bPatchY
+                              ]
+                              [
+                                set energia energia - 1
+                                andarNormal
+                              ]
+                            ]
+                            [
+                              set energia energia - 1
+                              andarNormal
+                            ]
+                          ]
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ]
+          ]
+        ]
+      ]
+    ]
+  ]
+end
+
+
+
+to acaoHienaMelhorado
+  ask hienas [
+    let frontPatch patch-ahead 1
+    let leftPatch patch-left-and-ahead 90 1
+    let rightPatch patch-right-and-ahead 90 1
+    let currentPatch patch-here
+
+    let hienasOnLeft count hienas-on leftPatch
+    let hienasOnRight count hienas-on rightPatch
+    let hienasInFront count hienas-on frontPatch
+    let hienasOnCurrent (count hienas-on currentPatch - 1)
+    set nivelAgrupamento hienasOnLeft + hienasOnRight + hienasInFront + hienasOnCurrent
+    let nleoesOnLeft count leoes-on leftPatch
+    let nleoesOnRight count leoes-on rightPatch
+    let nleoesInFront count leoes-on frontPatch
+    let nleoesInCurrent count leoes-on currentPatch
+    let nleoesInVizinhancaP nleoesOnLeft + nleoesOnRight + nleoesInFront + nleoesInCurrent
+    let foodOnCurrentPatch pcolor = brown or pcolor = red
+
+    let indHienasOnLeft hienas-on leftPatch
+    let indHienasOnRight hienas-on rightPatch
+    let indHienasInFront hienas-on frontPatch
+    let indHienasInCurrent hienas-on currentPatch
+
+
+    ifelse nivelAgrupamento > 0 ;cor default pink
+    [
+      set color blue ;mudada
+    ]
+    [
+      set color pink ;default
+    ]
+
+    ifelse foodOnCurrentPatch
+    [
+      comer
+    ]
+    [
+      ifelse nivelAgrupamento > 1
+      [
+        ifelse nleoesInVizinhancaP = 1
+        [
+          ifelse  nleoesOnLeft = 1
+          [
+            let targetLeao one-of leoes-on leftPatch
+
+             let energyToDeduct  ([energia] of targetLeao) * (EnergiaPerdidaCombate / 100)  / nivelAgrupamento
+
+              ask indHienasOnLeft [
+                set energia energia - energyToDeduct
+              ]
+              ask indHienasOnRight [
+                set energia energia - energyToDeduct
+              ]
+              ask indHienasInFront [
+                set energia energia - energyToDeduct
+              ]
+              ask indHienasInCurrent [
+                set energia energia - energyToDeduct
+              ]
+            ask targetLeao
+            [
+              die
+            ]
+            ask leftPatch
+            [
+              set pcolor red
+            ]
+          ]
+          [
+            ifelse nleoesOnRight = 1
+            [
+              let targetLeao one-of leoes-on rightPatch
+              let energyToDeduct  (EnergiaPerdidaCombate / 100)  / nivelAgrupamento
+
+              ask indHienasOnLeft [
+                set energia energia - energyToDeduct
+              ]
+              ask indHienasOnRight [
+                set energia energia - energyToDeduct
+              ]
+              ask indHienasInFront [
+                set energia energia - energyToDeduct
+              ]
+              ask indHienasInCurrent [
+                set energia energia - energyToDeduct
+              ]
+              ask targetLeao
+              [
+                die
+              ]
+              ask rightPatch
+              [
+                set pcolor red
+              ]
+            ]
+            [
+              ifelse nleoesInFront = 1
+              [
+                let targetLeao one-of leoes-on frontPatch
+
+                let energyToDeduct  (EnergiaPerdidaCombate / 100)  / nivelAgrupamento
+
+                ask indHienasOnLeft [
+                  set energia energia - energyToDeduct
+                ]
+                ask indHienasOnRight [
+                  set energia energia - energyToDeduct
+                ]
+                ask indHienasInFront [
+                  set energia energia - energyToDeduct
+                ]
+                ask indHienasInCurrent [
+                  set energia energia - energyToDeduct
+                ]
+                ask targetLeao
+                [
+                  die
+                ]
+                ask frontPatch
+                [
+                  set pcolor red
+                ]
+              ]
+              [
+                if nLeoesInCurrent = 1
+                [
+                  let targetLeao one-of leoes-on currentPatch
+                  let energyToDeduct  (EnergiaPerdidaCombate / 100)  / nivelAgrupamento
+
+                  ask indHienasOnLeft [
+                    set energia energia - energyToDeduct
+                  ]
+                  ask indHienasOnRight [
+                    set energia energia - energyToDeduct
+                  ]
+                  ask indHienasInFront [
+                    set energia energia - energyToDeduct
+                  ]
+                  ask indHienasInCurrent [
+                    set energia energia - energyToDeduct
+                  ]
+
+                  ask targetLeao
+                  [
+                    die
+                  ]
+                  ask rightPatch
+                  [
+                    set pcolor red
+                  ]
+                ]
+              ]
+            ]
+          ]
+        ]
+        [
+          set energia energia - 1
+          if nleoesInVizinhancaP = 0
+          [
+            andarNormal
+            let currentHeading heading
+            let x xcor
+            let y ycor
+
+            ask indHienasOnLeft [
+              set heading currentHeading
+              set xcor x
+              set ycor y
+            ]
+            ask indHienasOnRight [
+              set heading currentHeading
+              set xcor x
+              set ycor y
+            ]
+            ask indHienasInFront [
+              set heading currentHeading
+              set xcor x
+              set ycor y
+            ]
+            ask indHienasInCurrent [
+              set heading currentHeading
+              set xcor x
+              set ycor y
+            ]
+          ]
+        ]
+      ]
+      [
+        set energia energia - 1
+        andarNormal
+      ]
+    ]
+    ;nao ver celulas azuis
+  ]
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -557,9 +979,9 @@ end
 
 @#$#@#$#@
 GRAPHICS-WINDOW
-211
+414
 10
-648
+851
 448
 -1
 -1
@@ -641,7 +1063,7 @@ AlimentoPeqPorte
 AlimentoPeqPorte
 0
 20
-10.0
+14.0
 1
 1
 %
@@ -656,7 +1078,7 @@ AlimentoGrandePorte
 AlimentoGrandePorte
 0
 10
-5.0
+7.0
 1
 1
 %
@@ -671,7 +1093,7 @@ nLeoes
 nLeoes
 0
 100
-100.0
+37.0
 1
 1
 NIL
@@ -731,7 +1153,7 @@ energiaObtida
 energiaObtida
 1
 50
-14.0
+23.0
 1
 1
 NIL
@@ -783,7 +1205,7 @@ true
 false
 "" ""
 PENS
-"pen-1" 1.0 0 -987046 true "" "plot count leoes"
+"pen-1" 1.0 0 -16710653 true "" "plot count leoes"
 
 MONITOR
 17
@@ -839,6 +1261,28 @@ count leoes
 17
 1
 11
+
+SWITCH
+168
+43
+323
+76
+HienasMelhoradas?
+HienasMelhoradas?
+0
+1
+-1000
+
+SWITCH
+182
+90
+332
+123
+LeoesMelhorados?
+LeoesMelhorados?
+0
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?
