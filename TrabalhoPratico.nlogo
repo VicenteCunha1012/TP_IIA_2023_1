@@ -178,9 +178,12 @@ to acaoHiena
     let rightPatch patch-right-and-ahead 90 1
     let currentPatch patch-here
 
+
+
     let hienasOnLeft count hienas-on leftPatch
     let hienasOnRight count hienas-on rightPatch
     let hienasInFront count hienas-on frontPatch
+
     let hienasOnCurrent (count hienas-on currentPatch - 1)
     set nivelAgrupamento hienasOnLeft + hienasOnRight + hienasInFront + hienasOnCurrent
     let nleoesOnLeft count leoes-on leftPatch
@@ -195,7 +198,15 @@ to acaoHiena
     let indHienasInFront hienas-on frontPatch
     let indHienasInCurrent hienas-on currentPatch
 
-
+    if [pcolor] of leftPatch = blue [
+      set nleoesOnLeft 0
+    ]
+    if [pcolor] of rightPatch = blue [
+      set nleoesOnRight 0
+    ]
+    if [pcolor] of frontPatch = blue [
+      set nleoesInFront 0
+    ]
     ifelse nivelAgrupamento > 0 ;cor default pink
     [
       set color blue ;mudada
@@ -954,7 +965,6 @@ to acaoHienaMelhorado
     ;nao ver celulas azuis
   ]
 end
-
 
 
 
