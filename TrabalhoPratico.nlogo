@@ -1,7 +1,7 @@
 breed [leoes leao]
 breed [hienas hiena]
 
-turtles-own [energia]
+turtles-own [energia ableToBreed]
 
 hienas-own [nivelAgrupamento]
 leoes-own [timerDescanso]
@@ -20,10 +20,12 @@ to Go
   [
     die
   ]
+
   if count turtles = 0
   [
     stop
   ]
+
   ifelse hienasMelhoradas?
   [
     acaoHienaMelhorado
@@ -40,8 +42,10 @@ to Go
     acaoLeao
   ]
 
-
-
+  if reproduzir?
+  [
+    reproduzir
+  ]
 
   tick
 end
@@ -50,31 +54,19 @@ end
 ;;;; PATCHES
 
 to SetupPatches
-  SetupBrownPatches
-  SetupRedPatches
+  initPatches brown
+  initPatches red
   SetupBluePatches
 end
 
-to SetupBrownPatches
+to initPatches [cor]
   ask patches
   [
     let x random 101
 
     if x < AlimentoPeqPorte
     [
-      set pcolor brown
-    ]
-  ]
-end
-
-to SetupRedPatches
-  ask patches
-  [
-    let x random 101
-
-    if x < AlimentoGrandePorte
-    [
-      set pcolor red
+      set pcolor cor
     ]
   ]
 end
@@ -92,13 +84,11 @@ to SetupBluePatches
   ]
 end
 
-
 ;;;; AGENTES
 
 to SetupAgentes
   createLeoes
   createHienas
-
   ask turtles
   [
     let x random-xcor
@@ -108,40 +98,31 @@ to SetupAgentes
     set size 1.5
     setxy x y
     set heading headingDirection
+    set ableTobreed 1
   ]
 end
 
+to SetupTurtles [turt forma cor en]
+  ask turt
+  [
+    set shape forma
+    set color cor
+    set energia en
+  ]
+end
 
 ;;;;;;;; LEOES
 
-to SetupLeoes
-  ask leoes
-  [
-    set shape "person"
-    set color yellow
-    set energia energiaLeao
-  ]
-end
-
 to CreateLeoes
   create-leoes nLeoes
-  SetupLeoes
+  SetupTurtles leoes "person" yellow energiaLeao
 end
 
 ;;;;;;;; HIENAS
 
-to SetupHienas
-  ask hienas
-  [
-    set shape "cow"
-    set color pink
-    set energia energiaHiena
-  ]
-end
-
 to CreateHienas
   create-hienas nHienas
-  SetupHienas
+  SetupTurtles hienas "cow" pink energiaHiena
 end
 
 
@@ -178,8 +159,6 @@ to acaoHiena
     let rightPatch patch-right-and-ahead 90 1
     let currentPatch patch-here
 
-
-
     let hienasOnLeft count hienas-on leftPatch
     let hienasOnRight count hienas-on rightPatch
     let hienasInFront count hienas-on frontPatch
@@ -207,6 +186,10 @@ to acaoHiena
     if [pcolor] of frontPatch = blue [
       set nleoesInFront 0
     ]
+    if [pcolor] of currentPatch = blue [
+      set nleoesInCurrent 0
+    ]
+
     ifelse nivelAgrupamento > 0 ;cor default pink
     [
       set color blue ;mudada
@@ -597,7 +580,45 @@ to acaoLeaoMelhorado
     [
       if (ticks - timerDescanso) > descansoLeao
       [
+        let num random 101
+        if num < 20
+        [
+        set ableToBreed 1
+        ]
         fd 1
+      ]
+      let x random 101
+      if x < 50
+      [
+        set energia energia + 1
+      ]
+      ifelse killLeftPatch
+      [
+        let targetHiena one-of hienas-on leftPatch
+        set energia (energia - ([energia] of targetHiena) * energiaPerdidaCombate / 100)
+        ask leftPatch [set pcolor brown]
+        ask targetHiena [die]
+      ]
+      [;else
+        ifelse killRightPatch
+        [
+          let targetHiena one-of hienas-on rightPatch
+          set energia (energia - ([energia] of targetHiena) * energiaPerdidaCombate / 100)
+          ask rightPatch [set pcolor brown]
+          ask targetHiena [die]
+        ]
+        [;else
+          ifelse killFrontPatch
+          [
+            let targetHiena one-of hienas-on frontPatch
+            set energia (energia - ([energia] of targetHiena) * energiaPerdidaCombate / 100)
+            ask frontPatch [set pcolor brown]
+            ask targetHiena [die]
+          ]
+          [;else
+            andarNormal
+          ]
+        ]
       ]
     ]
     [
@@ -734,7 +755,7 @@ to acaoLeaoMelhorado
                           [;else
                             ifelse nHienasInRadius > 10
                             [
-                              let nearestBluePatch min-one-of patches with [pcolor = blue] [4]
+                              let nearestBluePatch min-one-of patches with [pcolor = blue] [5]
 
                               ifelse nearestBluePatch != nobody
                               [
@@ -786,13 +807,29 @@ to acaoHienaMelhorado
     let nleoesInFront count leoes-on frontPatch
     let nleoesInCurrent count leoes-on currentPatch
     let nleoesInVizinhancaP nleoesOnLeft + nleoesOnRight + nleoesInFront + nleoesInCurrent
+
     let foodOnCurrentPatch pcolor = brown or pcolor = red
+    let foodOnLeftPatch [pcolor] of leftPatch = red or [pcolor] of leftPatch = brown
+    let foodOnRightPatch [pcolor] of rightPatch = red or [pcolor] of rightPatch = brown
+    let foodOnFrontPatch [pcolor] of frontPatch = red or [pcolor] of frontPatch = brown
 
     let indHienasOnLeft hienas-on leftPatch
     let indHienasOnRight hienas-on rightPatch
     let indHienasInFront hienas-on frontPatch
     let indHienasInCurrent hienas-on currentPatch
 
+    if [pcolor] of leftPatch = blue [
+      set nleoesOnLeft 0
+    ]
+    if [pcolor] of rightPatch = blue [
+      set nleoesOnRight 0
+    ]
+    if [pcolor] of frontPatch = blue [
+      set nleoesInFront 0
+    ]
+    if [pcolor] of currentPatch = blue [
+      set nleoesInCurrent 0
+    ]
 
     ifelse nivelAgrupamento > 0 ;cor default pink
     [
@@ -814,21 +851,21 @@ to acaoHienaMelhorado
           ifelse  nleoesOnLeft = 1
           [
             let targetLeao one-of leoes-on leftPatch
+            set ableToBreed 1
+            let energyToDeduct  ([energia] of targetLeao) * (EnergiaPerdidaCombate / 100)  / nivelAgrupamento
 
-             let energyToDeduct  ([energia] of targetLeao) * (EnergiaPerdidaCombate / 100)  / nivelAgrupamento
-
-              ask indHienasOnLeft [
-                set energia energia - energyToDeduct
-              ]
-              ask indHienasOnRight [
-                set energia energia - energyToDeduct
-              ]
-              ask indHienasInFront [
-                set energia energia - energyToDeduct
-              ]
-              ask indHienasInCurrent [
-                set energia energia - energyToDeduct
-              ]
+            ask indHienasOnLeft [
+              set energia energia - energyToDeduct
+            ]
+            ask indHienasOnRight [
+              set energia energia - energyToDeduct
+            ]
+            ask indHienasInFront [
+              set energia energia - energyToDeduct
+            ]
+            ask indHienasInCurrent [
+              set energia energia - energyToDeduct
+            ]
             ask targetLeao
             [
               die
@@ -929,30 +966,40 @@ to acaoHienaMelhorado
           set energia energia - 1
           if nleoesInVizinhancaP = 0
           [
+            let num random 101
             andarNormal
             let currentHeading heading
             let x xcor
             let y ycor
 
+
             ask indHienasOnLeft [
               set heading currentHeading
+              if num < 90 [
               set xcor x
               set ycor y
+              ]
             ]
             ask indHienasOnRight [
               set heading currentHeading
+              if num < 90 [
               set xcor x
               set ycor y
+              ]
             ]
             ask indHienasInFront [
               set heading currentHeading
+              if num < 90 [
               set xcor x
               set ycor y
+              ]
             ]
             ask indHienasInCurrent [
               set heading currentHeading
+              if num < 90 [
               set xcor x
               set ycor y
+              ]
             ]
           ]
         ]
@@ -966,9 +1013,49 @@ to acaoHienaMelhorado
   ]
 end
 
+to reproduzir
+  ask leoes
+  [
+    if energia >= (2 * fomeLeao) and count leoes-on patch-here = 2
+    [
+      let x random 101
+      ifelse x < 18 and ableToBreed = 1
+      [
+        set ableToBreed 0
+        set energia energia / 2
+        hatch 1 [move-to patch-ahead 2]
+      ]
+      [
+        if x < 20 and ableToBreed = 1
+        [
+          set energia energia / 4
+          set ableToBreed 0
+          hatch 2 [move-to patch-ahead 2]
+        ]
+      ]
+    ]
+  ]
+  ask hienas
+  [
+    let leoesFront count leoes-on patch-ahead 1
+    let leoesLeft count leoes-on patch-left-and-ahead 90 1
+    let leoesRight count leoes-on patch-right-and-ahead 90 1
+    let leoesTotal leoesFront + leoesLeft + leoesRight
+    if count hienas-on patch-here < 2
+    [
+      let x random 101
+
+      if x < 20 and ableToBreed = 1
+      [
+        set ableToBreed 0
+        set energia energia / 2
+        hatch 1 [move-to patch-ahead 2]
+      ]
+    ]
+  ]
 
 
-
+end
 
 
 
@@ -1073,7 +1160,7 @@ AlimentoPeqPorte
 AlimentoPeqPorte
 0
 20
-14.0
+10.0
 1
 1
 %
@@ -1088,7 +1175,7 @@ AlimentoGrandePorte
 AlimentoGrandePorte
 0
 10
-7.0
+5.0
 1
 1
 %
@@ -1103,7 +1190,7 @@ nLeoes
 nLeoes
 0
 100
-37.0
+50.0
 1
 1
 NIL
@@ -1118,7 +1205,7 @@ nHienas
 nHienas
 0
 100
-100.0
+50.0
 1
 1
 NIL
@@ -1133,7 +1220,7 @@ energiaLeao
 energiaLeao
 0
 50
-50.0
+25.0
 1
 1
 NIL
@@ -1148,7 +1235,7 @@ energiaHiena
 energiaHiena
 0
 50
-50.0
+25.0
 1
 1
 NIL
@@ -1163,7 +1250,7 @@ energiaObtida
 energiaObtida
 1
 50
-23.0
+28.0
 1
 1
 NIL
@@ -1178,7 +1265,7 @@ FomeLeao
 FomeLeao
 0
 20
-17.0
+10.0
 1
 1
 NIL
@@ -1193,7 +1280,7 @@ EnergiaPerdidaCombate
 EnergiaPerdidaCombate
 0
 20
-16.0
+10.0
 1
 1
 %
@@ -1237,7 +1324,7 @@ descansoLeao
 descansoLeao
 0
 30
-21.0
+15.0
 1
 1
 NIL
@@ -1291,6 +1378,17 @@ SWITCH
 LeoesMelhorados?
 LeoesMelhorados?
 0
+1
+-1000
+
+SWITCH
+227
+177
+340
+210
+reproduzir?
+reproduzir?
+1
 1
 -1000
 
